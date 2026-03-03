@@ -4,14 +4,22 @@ const SESSION_KEY = "amphi_current_session";
 // load saved session safely
 function loadSession() {
   try {
-    return JSON.parse(localStorage.getItem(SESSION_KEY) || "null");
+    const raw = localStorage.getItem(SESSION_KEY);
+    console.debug("loadSession raw:", raw);
+    return JSON.parse(raw || "null");
   } catch {
+    console.error("Failed to parse session from localStorage");
     return null;
   }
 }
 
 function saveSession(payload) {
-  localStorage.setItem(SESSION_KEY, JSON.stringify(payload));
+  try {
+    localStorage.setItem(SESSION_KEY, JSON.stringify(payload));
+    console.debug("saveSession:", payload);
+  } catch (e) {
+    console.error("Failed to save session to localStorage:", e);
+  }
 }
 
 // ================= INITIAL STATE =================
@@ -24,6 +32,8 @@ let sessionMeta = saved?.meta || {
   time: "",
   notes: ""
 };
+
+console.debug("restored saved:", saved);
 
 
 if ("serviceWorker" in navigator) {
@@ -116,6 +126,7 @@ function autoSave() {
     updatedAt: Date.now()
   };
 
+  // write safely and log
   saveSession(payload);
 }
 
