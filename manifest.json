@@ -1,10 +1,11 @@
 {
-  "name": "Amphibien Zähler",
-  "short_name": "Amphi",
-  "start_url": "./index.html",
+  "name": "My PWA App",
+  "short_name": "App",
+  "description": "A Progressive Web App",
+  "start_url": "/",
   "display": "standalone",
-  "background_color": "#f4f6f4",
-  "theme_color": "#2e7d32",
+  "background_color": "#ffffff",
+  "theme_color": "#3b82f6",
   "icons": [
     {
       "src": "/icons/icon-192x192.png",

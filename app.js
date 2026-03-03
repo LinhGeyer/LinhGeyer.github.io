@@ -81,7 +81,7 @@ function createCounterRow(speciesName, type) {
         if (state[key] > 0) {
             state[key]--;
             countEl.textContent = state[key];
-            vibrate(15); // ⭐ short tick
+            vibrate(15); //short tick
             autoSave();
         }
     };
@@ -89,7 +89,7 @@ function createCounterRow(speciesName, type) {
     plus.onclick = () => {
         state[key]++;
         countEl.textContent = state[key];
-        vibrate(15); // ⭐ short tick
+        vibrate(15); //short tick
         autoSave();
     };
 
