@@ -3,15 +3,15 @@ const SESSION_KEY = "amphi_current_session";
 
 // load saved session safely
 function loadSession() {
-  try {
-    return JSON.parse(localStorage.getItem(SESSION_KEY) || "null");
-  } catch {
-    return null;
-  }
+    try {
+        return JSON.parse(localStorage.getItem(SESSION_KEY) || "null");
+    } catch {
+        return null;
+    }
 }
 
 function saveSession(payload) {
-  localStorage.setItem(SESSION_KEY, JSON.stringify(payload));
+    localStorage.setItem(SESSION_KEY, JSON.stringify(payload));
 }
 
 // ================= INITIAL STATE =================
@@ -19,17 +19,17 @@ const saved = loadSession();
 
 let state = saved?.counts || {};
 let sessionMeta = saved?.meta || {
-  observer: "",
-  date: "",
-  time: "",
-  notes: ""
+    observer: "",
+    date: "",
+    time: "",
+    notes: ""
 };
 
 
 if ("serviceWorker" in navigator) {
-  window.addEventListener("load", () => {
-    navigator.serviceWorker.register("./sw.js");
-  });
+    window.addEventListener("load", () => {
+        navigator.serviceWorker.register("./sw.js");
+    });
 }
 
 const species = [
@@ -43,20 +43,26 @@ const species = [
     "Andere"
 ];
 
+// ================= VIBRATION =================
+function vibrate(ms = 20) {
+    if ("vibrate" in navigator) {
+        navigator.vibrate(ms);
+    }
+}
+
 const container = document.getElementById("speciesContainer");
 
 function createCounterRow(speciesName, type) {
-  const key = `${speciesName}_${type}`;
+    const key = `${speciesName}_${type}`;
 
-  // ⭐ CRITICAL: do NOT overwrite restored data
-  if (state[key] == null) {
-    state[key] = 0;
-  }
+    if (state[key] == null) {
+        state[key] = 0;
+    }
 
-  const row = document.createElement("div");
-  row.className = "counter-row";
+    const row = document.createElement("div");
+    row.className = "counter-row";
 
-  row.innerHTML = `
+    row.innerHTML = `
     <span>${type}</span>
     <div class="counter-controls">
       <button class="minus">−</button>
@@ -65,28 +71,29 @@ function createCounterRow(speciesName, type) {
     </div>
   `;
 
-  const minus = row.querySelector(".minus");
-  const plus = row.querySelector(".plus");
-  const countEl = row.querySelector(".count");
+    const minus = row.querySelector(".minus");
+    const plus = row.querySelector(".plus");
+    const countEl = row.querySelector(".count");
 
-  // ⭐ restore visual value
-  countEl.textContent = state[key];
-
-  minus.onclick = () => {
-    if (state[key] > 0) {
-      state[key]--;
-      countEl.textContent = state[key];
-      autoSave();
-    }
-  };
-
-  plus.onclick = () => {
-    state[key]++;
     countEl.textContent = state[key];
-    autoSave();
-  };
 
-  return row;
+    minus.onclick = () => {
+        if (state[key] > 0) {
+            state[key]--;
+            countEl.textContent = state[key];
+            vibrate(15); // ⭐ short tick
+            autoSave();
+        }
+    };
+
+    plus.onclick = () => {
+        state[key]++;
+        countEl.textContent = state[key];
+        vibrate(15); // ⭐ short tick
+        autoSave();
+    };
+
+    return row;
 }
 
 function createSpeciesCard(name) {
@@ -105,18 +112,18 @@ function createSpeciesCard(name) {
 }
 
 function autoSave() {
-  const payload = {
-    counts: state,
-    meta: {
-      observer: document.getElementById("observer")?.value || "",
-      date: document.getElementById("date")?.value || "",
-      time: document.getElementById("time")?.value || "",
-      notes: document.getElementById("notes")?.value || ""
-    },
-    updatedAt: Date.now()
-  };
+    const payload = {
+        counts: state,
+        meta: {
+            observer: document.getElementById("observer")?.value || "",
+            date: document.getElementById("date")?.value || "",
+            time: document.getElementById("time")?.value || "",
+            notes: document.getElementById("notes")?.value || ""
+        },
+        updatedAt: Date.now()
+    };
 
-  saveSession(payload);
+    saveSession(payload);
 }
 
 // build UI
@@ -162,12 +169,12 @@ document.getElementById("exportBtn").onclick = () => {
 };
 
 ["observer", "date", "time", "notes"].forEach(id => {
-  const el = document.getElementById(id);
-  if (!el) return;
+    const el = document.getElementById(id);
+    if (!el) return;
 
-  // restore saved value
-  if (sessionMeta[id]) el.value = sessionMeta[id];
+    // restore saved value
+    if (sessionMeta[id]) el.value = sessionMeta[id];
 
-  el.addEventListener("change", autoSave);
-  el.addEventListener("input", autoSave);
+    el.addEventListener("change", autoSave);
+    el.addEventListener("input", autoSave);
 });
