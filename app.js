@@ -1,5 +1,35 @@
+// ================= STORAGE =================
+const SESSION_KEY = "amphi_current_session";
+
+// load saved session safely
+function loadSession() {
+  try {
+    return JSON.parse(localStorage.getItem(SESSION_KEY) || "null");
+  } catch {
+    return null;
+  }
+}
+
+function saveSession(payload) {
+  localStorage.setItem(SESSION_KEY, JSON.stringify(payload));
+}
+
+// ================= INITIAL STATE =================
+const saved = loadSession();
+
+let state = saved?.counts || {};
+let sessionMeta = saved?.meta || {
+  observer: "",
+  date: "",
+  time: "",
+  notes: ""
+};
+
+
 if ("serviceWorker" in navigator) {
+  window.addEventListener("load", () => {
     navigator.serviceWorker.register("./sw.js");
+  });
 }
 
 const species = [
@@ -15,63 +45,48 @@ const species = [
 
 const container = document.getElementById("speciesContainer");
 
-// ---------- STORAGE KEY ----------
-const SESSION_KEY = "amphi_current_session";
-
-// ---------- LOAD EXISTING SESSION ----------
-let state = {};
-let sessionMeta = {
-    observer: "",
-    date: "",
-    time: "",
-    notes: ""
-};
-
-const savedSession = JSON.parse(localStorage.getItem(SESSION_KEY) || "null");
-
-if (savedSession) {
-    state = savedSession.counts || {};
-    sessionMeta = savedSession.meta || sessionMeta;
-}
-
 function createCounterRow(speciesName, type) {
-    const key = `${speciesName}_${type}`;
+  const key = `${speciesName}_${type}`;
 
-    if (state[key] == null) state[key] = 0;
+  // ⭐ CRITICAL: do NOT overwrite restored data
+  if (state[key] == null) {
+    state[key] = 0;
+  }
 
-    const row = document.createElement("div");
-    row.className = "counter-row";
+  const row = document.createElement("div");
+  row.className = "counter-row";
 
-    row.innerHTML = `
+  row.innerHTML = `
     <span>${type}</span>
     <div class="counter-controls">
       <button class="minus">−</button>
-      <span class="count" id="${key}">0</span>
+      <span class="count">0</span>
       <button class="plus">+</button>
     </div>
   `;
 
-    const minus = row.querySelector(".minus");
-    const plus = row.querySelector(".plus");
-    const countEl = row.querySelector(".count");
+  const minus = row.querySelector(".minus");
+  const plus = row.querySelector(".plus");
+  const countEl = row.querySelector(".count");
 
+  // ⭐ restore visual value
+  countEl.textContent = state[key];
+
+  minus.onclick = () => {
+    if (state[key] > 0) {
+      state[key]--;
+      countEl.textContent = state[key];
+      autoSave();
+    }
+  };
+
+  plus.onclick = () => {
+    state[key]++;
     countEl.textContent = state[key];
+    autoSave();
+  };
 
-    minus.onclick = () => {
-        if (state[key] > 0) {
-            state[key]--;
-            countEl.textContent = state[key];
-            autoSave();
-        }
-    };
-
-    plus.onclick = () => {
-        state[key]++;
-        countEl.textContent = state[key];
-        autoSave();
-    };
-
-    return row;
+  return row;
 }
 
 function createSpeciesCard(name) {
@@ -90,18 +105,18 @@ function createSpeciesCard(name) {
 }
 
 function autoSave() {
-    const payload = {
-        counts: state,
-        meta: {
-            observer: document.getElementById("observer").value,
-            date: document.getElementById("date").value,
-            time: document.getElementById("time").value,
-            notes: document.getElementById("notes").value
-        },
-        updatedAt: new Date().toISOString()
-    };
+  const payload = {
+    counts: state,
+    meta: {
+      observer: document.getElementById("observer")?.value || "",
+      date: document.getElementById("date")?.value || "",
+      time: document.getElementById("time")?.value || "",
+      notes: document.getElementById("notes")?.value || ""
+    },
+    updatedAt: Date.now()
+  };
 
-    localStorage.setItem(SESSION_KEY, JSON.stringify(payload));
+  saveSession(payload);
 }
 
 // build UI
@@ -128,7 +143,7 @@ document.getElementById("saveBtn").addEventListener("click", () => {
 });
 
 // export
-exportBtn.onclick = () => {
+document.getElementById("exportBtn").onclick = () => {
     const data = JSON.parse(localStorage.getItem("surveys") || "[]");
 
     let csv = "observer,date,time,notes\n";
