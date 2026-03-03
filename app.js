@@ -73,21 +73,22 @@ species.forEach(s => {
 });
 
 // save
-saveBtn.onclick = () => {
+document.getElementById("saveBtn").addEventListener("click", () => {
   const entry = {
-    observer: observer.value,
-    date: date.value,
-    time: time.value,
-    notes: notes.value,
-    counts: state
+    observer: document.getElementById("observer").value,
+    date: document.getElementById("date").value,
+    time: document.getElementById("time").value,
+    notes: document.getElementById("notes").value,
+    counts: { ...state },
+    savedAt: new Date().toISOString()
   };
 
-  const data = JSON.parse(localStorage.getItem("surveys") || "[]");
-  data.push(entry);
-  localStorage.setItem("surveys", JSON.stringify(data));
+  const existing = JSON.parse(localStorage.getItem("surveys") || "[]");
+  existing.push(entry);
+  localStorage.setItem("surveys", JSON.stringify(existing));
 
-  alert("Gespeichert!");
-};
+  alert("Gespeichert! (" + existing.length + " Einträge)");
+});
 
 // export
 exportBtn.onclick = () => {
