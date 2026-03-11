@@ -209,6 +209,33 @@ document.getElementById("exportBtn").onclick = () => {
 
 };
 
+document.getElementById("resetBtn").onclick = () => {
+
+  if (!confirm("Alle aktuellen Zählwerte wirklich zurücksetzen?")) {
+    return;
+  }
+
+  // reset state values
+  Object.keys(state).forEach(key => {
+    state[key] = 0;
+  });
+
+  // update all counters visually
+  document.querySelectorAll(".count").forEach(el => {
+    el.textContent = "0";
+  });
+
+  // clear form fields
+  ["observer","date","time","notes"].forEach(id => {
+    const el = document.getElementById(id);
+    if (el) el.value = "";
+  });
+
+  // remove autosaved session
+  localStorage.removeItem(SESSION_KEY);
+
+};
+
 ["observer", "date", "time", "notes"].forEach(id => {
     const el = document.getElementById(id);
     if (!el) return;
