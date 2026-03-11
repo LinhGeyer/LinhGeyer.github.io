@@ -151,21 +151,62 @@ document.getElementById("saveBtn").addEventListener("click", () => {
 
 // export
 document.getElementById("exportBtn").onclick = () => {
-    const data = JSON.parse(localStorage.getItem("surveys") || "[]");
 
-    let csv = "observer,date,time,notes\n";
+  const data = JSON.parse(localStorage.getItem("surveys") || "[]");
 
-    data.forEach(r => {
-        csv += `${r.observer},${r.date},${r.time},${r.notes}\n`;
+  const species = [
+    "Erdkröte",
+    "Knoblauchkröte",
+    "Grasfrosch",
+    "Moorfrosch",
+    "Teichfrosch",
+    "Teichmolch",
+    "Kammmolch",
+    "Andere"
+  ];
+
+  const types = ["adult","juv","paare"];
+
+  // ---- build header ----
+  let header = ["Datum","Uhrzeit","Bearbeiter","Bemerkungen"];
+
+  species.forEach(s => {
+    types.forEach(t => {
+      header.push(`${s} ${t}`);
+    });
+  });
+
+  let csv = header.join(",") + "\n";
+
+  // ---- rows ----
+  data.forEach(entry => {
+
+    let row = [
+      entry.date,
+      entry.time,
+      entry.observer,
+      entry.notes || ""
+    ];
+
+    species.forEach(s => {
+      types.forEach(t => {
+        const key = `${s}_${t}`;
+        row.push(entry.counts?.[key] ?? 0);
+      });
     });
 
-    const blob = new Blob([csv], { type: "text/csv" });
-    const url = URL.createObjectURL(blob);
+    csv += row.join(",") + "\n";
 
-    const a = document.createElement("a");
-    a.href = url;
-    a.download = "amphibien.csv";
-    a.click();
+  });
+
+  const blob = new Blob([csv], { type: "text/csv;charset=utf-8;" });
+  const url = URL.createObjectURL(blob);
+
+  const a = document.createElement("a");
+  a.href = url;
+  a.download = "amphibien_zaehlung.csv";
+  a.click();
+
 };
 
 ["observer", "date", "time", "notes"].forEach(id => {
