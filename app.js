@@ -150,7 +150,7 @@ document.getElementById("saveBtn").addEventListener("click", () => {
 });
 
 // export
-document.getElementById("exportBtn").onclick = () => {
+document.getElementById("exportBtn").onclick = async () => {
 
   const data = JSON.parse(localStorage.getItem("surveys") || "[]");
 
@@ -167,7 +167,7 @@ document.getElementById("exportBtn").onclick = () => {
 
   const types = ["adult","juv","paare"];
 
-  // ---- build header ----
+  // ---- header ----
   let header = ["Datum","Uhrzeit","Bearbeiter","Bemerkungen"];
 
   species.forEach(s => {
@@ -199,13 +199,35 @@ document.getElementById("exportBtn").onclick = () => {
 
   });
 
-  const blob = new Blob([csv], { type: "text/csv;charset=utf-8;" });
-  const url = URL.createObjectURL(blob);
+  const file = new File(
+    [csv],
+    "amphibien_zaehlung.csv",
+    { type: "text/csv" }
+  );
 
-  const a = document.createElement("a");
-  a.href = url;
-  a.download = "amphibien_zaehlung.csv";
-  a.click();
+  // ---- share if supported ----
+  if (navigator.share && navigator.canShare && navigator.canShare({ files: [file] })) {
+
+    try {
+      await navigator.share({
+        title: "Amphibien Zählung",
+        text: "Export der Amphibienzählung",
+        files: [file]
+      });
+    } catch (err) {
+      console.log("Share cancelled");
+    }
+
+  } else {
+
+    // fallback: download
+    const url = URL.createObjectURL(file);
+    const a = document.createElement("a");
+    a.href = url;
+    a.download = "amphibien_zaehlung.csv";
+    a.click();
+
+  }
 
 };
 
