@@ -60,7 +60,8 @@ button.minus {
 }
 
 #saveBtn,
-#exportBtn {
+#exportBtn,
+#resetBtn {
   width: 100%;
   padding: 16px;
   margin-top: 10px;
