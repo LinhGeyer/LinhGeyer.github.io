@@ -1,7 +1,7 @@
 {
-  "name": "My PWA App",
-  "short_name": "App",
-  "description": "A Progressive Web App",
+  "name": "Amphizähler",
+  "short_name": "Amphi",
+  "description": "Zähle Amphibien",
   "start_url": "/",
   "display": "standalone",
   "background_color": "#ffffff",

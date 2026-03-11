@@ -59,9 +59,9 @@ button.minus {
   background: #c62828;
 }
 
-button.saveBtn,
-button.exportBtn,
-button.resetBtn {
+#saveBtn,
+#exportBtn,
+#resetBtn {
   width: 100%;
   padding: 16px;
   margin-top: 10px;
