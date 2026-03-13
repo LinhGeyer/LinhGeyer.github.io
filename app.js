@@ -297,6 +297,29 @@ locationSelect.addEventListener("change", () => {
     autoSave();
 });
 
+document.getElementById("nextBucketBtn").onclick = () => {
+
+  const bucketInput = document.getElementById("bucketNr");
+
+  let bucket = parseInt(bucketInput.value || "0", 10);
+
+  bucket++;
+  bucketInput.value = bucket;
+
+  // reset counters
+  Object.keys(state).forEach(key => {
+    state[key] = 0;
+  });
+
+  document.querySelectorAll(".count").forEach(el => {
+    el.textContent = "0";
+  });
+
+  vibrate(40); // stronger feedback for bucket change
+
+  autoSave();
+};
+
 ["observer", "date", "time", "notes", "bucketNr"].forEach(id => {
     const el = document.getElementById(id); if (sessionMeta.location) {
 
