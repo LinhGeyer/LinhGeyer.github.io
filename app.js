@@ -112,13 +112,21 @@ function createSpeciesCard(name) {
 }
 
 function autoSave() {
+
+    const location =
+        locationSelect.value === "custom"
+            ? customLocation.value
+            : locationSelect.value;
+
     const payload = {
         counts: state,
         meta: {
             observer: document.getElementById("observer")?.value || "",
             date: document.getElementById("date")?.value || "",
             time: document.getElementById("time")?.value || "",
-            notes: document.getElementById("notes")?.value || ""
+            notes: document.getElementById("notes")?.value || "",
+            location: location,
+            bucketNr: document.getElementById("bucketNr")?.value || ""
         },
         updatedAt: Date.now()
     };
@@ -133,10 +141,17 @@ species.forEach(s => {
 
 // save
 document.getElementById("saveBtn").addEventListener("click", () => {
+    const location =
+        locationSelect.value === "custom"
+            ? customLocation.value
+            : locationSelect.value;
+
     const entry = {
         observer: document.getElementById("observer").value,
         date: document.getElementById("date").value,
         time: document.getElementById("time").value,
+        location: location,
+        bucketNr: document.getElementById("bucketNr").value,
         notes: document.getElementById("notes").value,
         counts: { ...state },
         savedAt: new Date().toISOString()
@@ -152,114 +167,149 @@ document.getElementById("saveBtn").addEventListener("click", () => {
 // export
 document.getElementById("exportBtn").onclick = async () => {
 
-  const data = JSON.parse(localStorage.getItem("surveys") || "[]");
+    const data = JSON.parse(localStorage.getItem("surveys") || "[]");
 
-  const species = [
-    "Erdkröte",
-    "Knoblauchkröte",
-    "Grasfrosch",
-    "Moorfrosch",
-    "Teichfrosch",
-    "Teichmolch",
-    "Kammmolch",
-    "Andere"
-  ];
+    const species = [
+        "Erdkröte",
+        "Knoblauchkröte",
+        "Grasfrosch",
+        "Moorfrosch",
+        "Teichfrosch",
+        "Teichmolch",
+        "Kammmolch",
+        "Andere"
+    ];
 
-  const types = ["adult","juv","paare"];
+    const types = ["adult", "juv", "paare"];
 
-  // ---- header ----
-  let header = ["Datum","Uhrzeit","Bearbeiter","Bemerkungen"];
-
-  species.forEach(s => {
-    types.forEach(t => {
-      header.push(`${s} ${t}`);
-    });
-  });
-
-  let csv = header.join(",") + "\n";
-
-  // ---- rows ----
-  data.forEach(entry => {
-
-    let row = [
-      entry.date,
-      entry.time,
-      entry.observer,
-      entry.notes || ""
+    // ---- header ----
+    let header = [
+        "Datum",
+        "Uhrzeit",
+        "Bearbeiter",
+        "Ort",
+        "Eimer-Nr",
+        "Bemerkungen"
     ];
 
     species.forEach(s => {
-      types.forEach(t => {
-        const key = `${s}_${t}`;
-        row.push(entry.counts?.[key] ?? 0);
-      });
+        types.forEach(t => {
+            header.push(`${s} ${t}`);
+        });
     });
 
-    csv += row.join(",") + "\n";
+    let csv = header.join(",") + "\n";
 
-  });
+    // ---- rows ----
+    data.forEach(entry => {
 
-  const file = new File(
-    [csv],
-    "amphibien_zaehlung.csv",
-    { type: "text/csv" }
-  );
+        let row = [
+            entry.date,
+            entry.time,
+            entry.observer,
+            entry.location || "",
+            entry.bucketNr || "",
+            entry.notes || ""
+        ];
 
-  // ---- share if supported ----
-  if (navigator.share && navigator.canShare && navigator.canShare({ files: [file] })) {
+        species.forEach(s => {
+            types.forEach(t => {
+                const key = `${s}_${t}`;
+                row.push(entry.counts?.[key] ?? 0);
+            });
+        });
 
-    try {
-      await navigator.share({
-        title: "Amphibien Zählung",
-        text: "Export der Amphibienzählung",
-        files: [file]
-      });
-    } catch (err) {
-      console.log("Share cancelled");
+        csv += row.join(",") + "\n";
+
+    });
+
+    const file = new File(
+        [csv],
+        "amphibien_zaehlung.csv",
+        { type: "text/csv" }
+    );
+
+    // ---- share if supported ----
+    if (navigator.share && navigator.canShare && navigator.canShare({ files: [file] })) {
+
+        try {
+            await navigator.share({
+                title: "Amphibien Zählung",
+                text: "Export der Amphibienzählung",
+                files: [file]
+            });
+        } catch (err) {
+            console.log("Share cancelled");
+        }
+
+    } else {
+
+        // fallback: download
+        const url = URL.createObjectURL(file);
+        const a = document.createElement("a");
+        a.href = url;
+        a.download = "amphibien_zaehlung.csv";
+        a.click();
+
     }
-
-  } else {
-
-    // fallback: download
-    const url = URL.createObjectURL(file);
-    const a = document.createElement("a");
-    a.href = url;
-    a.download = "amphibien_zaehlung.csv";
-    a.click();
-
-  }
 
 };
 
 document.getElementById("resetBtn").onclick = () => {
 
-  if (!confirm("Alle aktuellen Zählwerte wirklich zurücksetzen?")) {
-    return;
-  }
+    if (!confirm("Alle aktuellen Zählwerte wirklich zurücksetzen?")) {
+        return;
+    }
 
-  // reset state values
-  Object.keys(state).forEach(key => {
-    state[key] = 0;
-  });
+    // reset state values
+    Object.keys(state).forEach(key => {
+        state[key] = 0;
+    });
 
-  // update all counters visually
-  document.querySelectorAll(".count").forEach(el => {
-    el.textContent = "0";
-  });
+    // update all counters visually
+    document.querySelectorAll(".count").forEach(el => {
+        el.textContent = "0";
+    });
 
-  // clear form fields
-  ["observer","date","time","notes"].forEach(id => {
-    const el = document.getElementById(id);
-    if (el) el.value = "";
-  });
+    // clear form fields
+    ["observer", "date", "time", "notes"].forEach(id => {
+        const el = document.getElementById(id);
+        if (el) el.value = "";
+    });
 
-  // remove autosaved session
-  localStorage.removeItem(SESSION_KEY);
+    // remove autosaved session
+    localStorage.removeItem(SESSION_KEY);
 
 };
 
-["observer", "date", "time", "notes"].forEach(id => {
-    const el = document.getElementById(id);
+const locationSelect = document.getElementById("locationSelect");
+const customLocation = document.getElementById("customLocation");
+
+locationSelect.addEventListener("change", () => {
+
+    if (locationSelect.value === "custom") {
+        customLocation.style.display = "block";
+    } else {
+        customLocation.style.display = "none";
+        customLocation.value = "";
+    }
+
+    autoSave();
+});
+
+["observer", "date", "time", "notes", "bucketNr"].forEach(id => {
+    const el = document.getElementById(id); if (sessionMeta.location) {
+
+        if ([...locationSelect.options].some(o => o.value === sessionMeta.location)) {
+            locationSelect.value = sessionMeta.location;
+        } else {
+            locationSelect.value = "custom";
+            customLocation.style.display = "block";
+            customLocation.value = sessionMeta.location;
+        }
+
+    }
+
     if (!el) return;
 
     // restore saved value

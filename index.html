@@ -19,6 +19,28 @@
   <input type="time" id="time" />
 </section>
 
+<label for="locationSelect">Ort</label>
+<select id="locationSelect">
+  <option value="">Ort auswählen</option>
+  <option value="Worther Weg">Worther Weg</option>
+  <option value="Am Teich">Am Teich</option>
+  <option value="Waldstraße">Waldstraße</option>
+  <option value="custom">Andere...</option>
+</select>
+
+<input
+  id="customLocation"
+  placeholder="Ort eingeben"
+  style="display:none"
+/>
+
+<label for="bucketNr">Eimer-Nr.</label>
+<input
+  type="number"
+  id="bucketNr"
+  placeholder="Eimer Nummer"
+/>
+
 <div id="speciesContainer"></div>
 
 <textarea id="notes" placeholder="Bemerkungen"></textarea>

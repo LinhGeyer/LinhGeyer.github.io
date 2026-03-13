@@ -30,7 +30,6 @@ self.addEventListener("install", event => {
 });
 
 self.addEventListener("activate", event => {
-  // remove old caches and take control immediately
   event.waitUntil(
     caches.keys().then(keys => {
       return Promise.all(
