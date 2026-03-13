@@ -1,4 +1,18 @@
-const CACHE = "amphi-v2";
+const CACHE = "amphi-v2.5";
+
+self.addEventListener("activate", event => {
+  event.waitUntil(
+    caches.keys().then(keys =>
+      Promise.all(
+        keys.map(key => {
+          if (key !== CACHE) {
+            return caches.delete(key);
+          }
+        })
+      )
+    )
+  );
+});
 
 self.addEventListener("install", event => {
   event.waitUntil(
