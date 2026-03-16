@@ -273,6 +273,9 @@ document.getElementById("exportBtn").onclick = async () => {
 
     });
 
+    // dead counter
+    header.push("Tote Tiere");
+
     let csv = header.join(",") + "\n";
 
     // ---- rows ----
@@ -296,6 +299,9 @@ document.getElementById("exportBtn").onclick = async () => {
                 row.push(entry.counts?.[key] ?? 0);
             });
         });
+
+        // dead counter
+        row.push(entry.counts?.["Tot_tiere"] ?? 0);
 
         csv += row.join(",") + "\n";
 
