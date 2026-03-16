@@ -54,6 +54,16 @@ const species = [
 
 const container = document.getElementById("speciesContainer");
 const deadContainer = document.getElementById("deadContainer");
+const locationSelect = document.getElementById("locationSelect");
+const customLocation = document.getElementById("customLocation");
+
+if (!container) {
+    console.error("Cannot find #speciesContainer in the DOM. Species cards will not render.");
+}
+
+if (!deadContainer) {
+    console.error("Cannot find #deadContainer in the DOM. Dead counter will not render.");
+}
 
 function createSpeciesCard(speciesObj) {
 
@@ -80,9 +90,11 @@ function createSpeciesCard(speciesObj) {
 }
 
 // build UI
-species.forEach(s => {
-    container.appendChild(createSpeciesCard(s));
-});
+if (container) {
+    species.forEach(s => {
+        container.appendChild(createSpeciesCard(s));
+    });
+}
 
 function createDeadCounter() {
 
@@ -100,7 +112,9 @@ function createDeadCounter() {
     return card;
 }
 
-deadContainer.appendChild(createDeadCounter());
+if (deadContainer) {
+    deadContainer.appendChild(createDeadCounter());
+}
 
 function createCounterRow(speciesName, type) {
     const key = `${speciesName}_${type}`;
@@ -149,9 +163,9 @@ function createCounterRow(speciesName, type) {
 function autoSave() {
 
     const location =
-        locationSelect.value === "custom"
-            ? customLocation.value
-            : locationSelect.value;
+        locationSelect?.value === "custom"
+            ? customLocation?.value
+            : locationSelect?.value || "";
 
     const payload = {
         counts: state,
@@ -175,9 +189,9 @@ function autoSave() {
 // save
 document.getElementById("saveBtn").addEventListener("click", () => {
     const location =
-        locationSelect.value === "custom"
-            ? customLocation.value
-            : locationSelect.value;
+        locationSelect?.value === "custom"
+            ? customLocation?.value
+            : locationSelect?.value || "";
 
     const entry = {
         observer: document.getElementById("observer").value,
@@ -254,7 +268,7 @@ document.getElementById("exportBtn").onclick = async () => {
         const types = getTypes(s);
 
         types.forEach(t => {
-            header.push(`${s.name} ${t}`);
+            header.push(`${s} ${t}`);
         });
 
     });
@@ -276,6 +290,7 @@ document.getElementById("exportBtn").onclick = async () => {
         ];
 
         species.forEach(s => {
+            const types = getTypes(s);
             types.forEach(t => {
                 const key = `${s}_${t}`;
                 row.push(entry.counts?.[key] ?? 0);
@@ -345,20 +360,19 @@ document.getElementById("resetBtn").onclick = () => {
 
 };
 
-const locationSelect = document.getElementById("locationSelect");
-const customLocation = document.getElementById("customLocation");
+if (locationSelect && customLocation) {
+    locationSelect.addEventListener("change", () => {
 
-locationSelect.addEventListener("change", () => {
+        if (locationSelect.value === "custom") {
+            customLocation.style.display = "block";
+        } else {
+            customLocation.style.display = "none";
+            customLocation.value = "";
+        }
 
-    if (locationSelect.value === "custom") {
-        customLocation.style.display = "block";
-    } else {
-        customLocation.style.display = "none";
-        customLocation.value = "";
-    }
-
-    autoSave();
-});
+        autoSave();
+    });
+}
 
 document.getElementById("nextBucketBtn").onclick = () => {
 
@@ -384,7 +398,9 @@ document.getElementById("nextBucketBtn").onclick = () => {
 };
 
 ["observer", "date", "time", "notes", "bucketNr"].forEach(id => {
-    const el = document.getElementById(id); if (sessionMeta.location) {
+    const el = document.getElementById(id);
+
+    if (sessionMeta.location && locationSelect && customLocation) {
 
         if ([...locationSelect.options].some(o => o.value === sessionMeta.location)) {
             locationSelect.value = sessionMeta.location;
