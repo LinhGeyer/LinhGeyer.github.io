@@ -25,6 +25,13 @@ let sessionMeta = saved?.meta || {
     notes: ""
 };
 
+// ================= VIBRATION =================
+function vibrate(ms = 20) {
+    if ("vibrate" in navigator) {
+        navigator.vibrate(ms);
+    }
+}
+
 
 if ("serviceWorker" in navigator) {
     window.addEventListener("load", () => {
@@ -44,6 +51,9 @@ const species = [
 
     { name: "Andere", type: "frog" }
 ];
+
+const container = document.getElementById("speciesContainer");
+const deadContainer = document.getElementById("deadContainer");
 
 function createSpeciesCard(speciesObj) {
 
@@ -74,8 +84,6 @@ species.forEach(s => {
     container.appendChild(createSpeciesCard(s));
 });
 
-const deadContainer = document.getElementById("deadContainer");
-
 function createDeadCounter() {
 
     const row = createCounterRow("Tot", "tiere");
@@ -93,15 +101,6 @@ function createDeadCounter() {
 }
 
 deadContainer.appendChild(createDeadCounter());
-
-// ================= VIBRATION =================
-function vibrate(ms = 20) {
-    if ("vibrate" in navigator) {
-        navigator.vibrate(ms);
-    }
-}
-
-const container = document.getElementById("speciesContainer");
 
 function createCounterRow(speciesName, type) {
     const key = `${speciesName}_${type}`;
@@ -238,8 +237,6 @@ document.getElementById("exportBtn").onclick = async () => {
         "Andere"
     ];
 
-    //const types = ["adult", "juv", "paare"];
-
     // ---- header ----
     let header = [
         "Datum",
@@ -254,7 +251,7 @@ document.getElementById("exportBtn").onclick = async () => {
 
     species.forEach(s => {
 
-        const types = getTypes(s.name);
+        const types = getTypes(s);
 
         types.forEach(t => {
             header.push(`${s.name} ${t}`);
