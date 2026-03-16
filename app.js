@@ -33,15 +33,66 @@ if ("serviceWorker" in navigator) {
 }
 
 const species = [
-    "Erdkröte",
-    "Knoblauchkröte",
-    "Grasfrosch",
-    "Moorfrosch",
-    "Teichfrosch",
-    "Teichmolch",
-    "Kammmolch",
-    "Andere"
+    { name: "Erdkröte", type: "frog" },
+    { name: "Knoblauchkröte", type: "frog" },
+    { name: "Grasfrosch", type: "frog" },
+    { name: "Moorfrosch", type: "frog" },
+    { name: "Teichfrosch", type: "frog" },
+
+    { name: "Teichmolch", type: "newt" },
+    { name: "Kammmolch", type: "newt" },
+
+    { name: "Andere", type: "frog" }
 ];
+
+function createSpeciesCard(speciesObj) {
+
+    const card = document.createElement("div");
+    card.className = "species-card";
+
+    const title = document.createElement("h3");
+    title.textContent = speciesObj.name;
+    card.appendChild(title);
+
+    if (speciesObj.type === "frog") {
+
+        ["einzeln", "paare"].forEach(type => {
+            card.appendChild(createCounterRow(speciesObj.name, type));
+        });
+
+    } else if (speciesObj.type === "newt") {
+
+        card.appendChild(createCounterRow(speciesObj.name, "tiere"));
+
+    }
+
+    return card;
+}
+
+// build UI
+species.forEach(s => {
+    container.appendChild(createSpeciesCard(s));
+});
+
+const deadContainer = document.getElementById("deadContainer");
+
+function createDeadCounter() {
+
+    const row = createCounterRow("Tot", "tiere");
+
+    const card = document.createElement("div");
+    card.className = "species-card";
+
+    const title = document.createElement("h3");
+    title.textContent = "Tote Tiere";
+
+    card.appendChild(title);
+    card.appendChild(row);
+
+    return card;
+}
+
+deadContainer.appendChild(createDeadCounter());
 
 // ================= VIBRATION =================
 function vibrate(ms = 20) {
@@ -96,21 +147,6 @@ function createCounterRow(speciesName, type) {
     return row;
 }
 
-function createSpeciesCard(name) {
-    const card = document.createElement("div");
-    card.className = "species-card";
-
-    const title = document.createElement("h3");
-    title.textContent = name;
-    card.appendChild(title);
-
-    ["adult", "juv", "paare"].forEach(type => {
-        card.appendChild(createCounterRow(name, type));
-    });
-
-    return card;
-}
-
 function autoSave() {
 
     const location =
@@ -136,10 +172,6 @@ function autoSave() {
     saveSession(payload);
 }
 
-// build UI
-species.forEach(s => {
-    container.appendChild(createSpeciesCard(s));
-});
 
 // save
 document.getElementById("saveBtn").addEventListener("click", () => {
@@ -168,6 +200,28 @@ document.getElementById("saveBtn").addEventListener("click", () => {
     alert("Gespeichert! (" + existing.length + " Einträge)");
 });
 
+function getTypes(speciesName) {
+
+    const frogSpecies = [
+        "Erdkröte",
+        "Knoblauchkröte",
+        "Grasfrosch",
+        "Moorfrosch",
+        "Teichfrosch",
+        "Andere"
+    ];
+
+    const newtSpecies = [
+        "Teichmolch",
+        "Kammmolch"
+    ];
+
+    if (frogSpecies.includes(speciesName)) return ["einzeln", "paare"];
+    if (newtSpecies.includes(speciesName)) return ["tiere"];
+
+    return [];
+}
+
 // export
 document.getElementById("exportBtn").onclick = async () => {
 
@@ -184,7 +238,7 @@ document.getElementById("exportBtn").onclick = async () => {
         "Andere"
     ];
 
-    const types = ["adult", "juv", "paare"];
+    //const types = ["adult", "juv", "paare"];
 
     // ---- header ----
     let header = [
@@ -199,9 +253,13 @@ document.getElementById("exportBtn").onclick = async () => {
     ];
 
     species.forEach(s => {
+
+        const types = getTypes(s.name);
+
         types.forEach(t => {
-            header.push(`${s} ${t}`);
+            header.push(`${s.name} ${t}`);
         });
+
     });
 
     let csv = header.join(",") + "\n";
