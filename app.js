@@ -126,7 +126,9 @@ function autoSave() {
             time: document.getElementById("time")?.value || "",
             notes: document.getElementById("notes")?.value || "",
             location: location,
-            bucketNr: document.getElementById("bucketNr")?.value || ""
+            bucketNr: document.getElementById("bucketNr")?.value || "",
+            temperature: document.getElementById("temperature")?.value || "",
+            weather: document.getElementById("weather")?.value || ""
         },
         updatedAt: Date.now()
     };
@@ -152,6 +154,8 @@ document.getElementById("saveBtn").addEventListener("click", () => {
         time: document.getElementById("time").value,
         location: location,
         bucketNr: document.getElementById("bucketNr").value,
+        temperature: document.getElementById("temperature").value,
+        weather: document.getElementById("weather").value,
         notes: document.getElementById("notes").value,
         counts: { ...state },
         savedAt: new Date().toISOString()
@@ -189,6 +193,8 @@ document.getElementById("exportBtn").onclick = async () => {
         "Bearbeiter",
         "Ort",
         "Eimer-Nr",
+        "Temperatur",
+        "Wetter",
         "Bemerkungen"
     ];
 
@@ -209,6 +215,8 @@ document.getElementById("exportBtn").onclick = async () => {
             entry.observer,
             entry.location || "",
             entry.bucketNr || "",
+            entry.temperature || "",
+            entry.weather || "",
             entry.notes || ""
         ];
 
@@ -299,25 +307,25 @@ locationSelect.addEventListener("change", () => {
 
 document.getElementById("nextBucketBtn").onclick = () => {
 
-  const bucketInput = document.getElementById("bucketNr");
+    const bucketInput = document.getElementById("bucketNr");
 
-  let bucket = parseInt(bucketInput.value || "0", 10);
+    let bucket = parseInt(bucketInput.value || "0", 10);
 
-  bucket++;
-  bucketInput.value = bucket;
+    bucket++;
+    bucketInput.value = bucket;
 
-  // reset counters
-  Object.keys(state).forEach(key => {
-    state[key] = 0;
-  });
+    // reset counters
+    Object.keys(state).forEach(key => {
+        state[key] = 0;
+    });
 
-  document.querySelectorAll(".count").forEach(el => {
-    el.textContent = "0";
-  });
+    document.querySelectorAll(".count").forEach(el => {
+        el.textContent = "0";
+    });
 
-  vibrate(40); // stronger feedback for bucket change
+    vibrate(40); // stronger feedback for bucket change
 
-  autoSave();
+    autoSave();
 };
 
 ["observer", "date", "time", "notes", "bucketNr"].forEach(id => {

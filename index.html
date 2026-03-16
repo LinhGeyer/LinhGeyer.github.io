@@ -19,12 +19,31 @@
   <input type="time" id="time" />
 </section>
 
+<label for="temperature">Temperatur (°C)</label>
+<input
+  type="number"
+  id="temperature"
+  placeholder="Temperatur °C"
+  step="0.1"
+/>
+
+<label for="weather">Wetter</label>
+<select id="weather">
+  <option value="">Wetter auswählen</option>
+  <option value="Regen">Regen</option>
+  <option value="Nass/feucht">Nass / feucht</option>
+  <option value="Trocken/Klar">Trocken / Klar</option>
+</select>
+
 <label for="locationSelect">Ort</label>
 <select id="locationSelect">
   <option value="">Ort auswählen</option>
+  <option value="Bistal">Bistal</option>
+  <option value="Mercatorstraße">Mercatorstraße</option>
+  <option value="Wilhelm-Holert-Straße">Wilhelm-Holert-Straße</option>
   <option value="Worther Weg">Worther Weg</option>
-  <option value="Am Teich">Am Teich</option>
-  <option value="Waldstraße">Waldstraße</option>
+  <option value="Westerheese">Westerheese</option>
+  <option value="Neu-Gülzow">Neu-Gülzow</option>
   <option value="custom">Andere...</option>
 </select>
 
@@ -49,7 +68,7 @@
 <textarea id="notes" placeholder="Bemerkungen"></textarea>
 
 <button id="saveBtn">💾 Speichern</button>
-<button id="exportBtn">📤 CSV Export</button>
+<button id="exportBtn">📤 CSV Export + Teilen</button>
 <button id="resetBtn">🔄 Neue Zählung starten</button>
 
 <script src="app.js"></script>
