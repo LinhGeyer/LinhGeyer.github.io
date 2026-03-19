@@ -318,7 +318,7 @@ document.getElementById("exportBtn").onclick = async () => {
 
             if (s.name === "Erdkröte") {
 
-                ["weibchen", "maennchen", "paare"].forEach(t => {
+                ["weibchen", "männchen", "paare"].forEach(t => {
                     const key = `${s.name}_${t}`;
                     row.push(entry.counts?.[key] ?? 0);
                 });
