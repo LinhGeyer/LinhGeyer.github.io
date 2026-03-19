@@ -161,25 +161,37 @@ function createCounterRow(speciesName, type) {
     return row;
 }
 
-function autoSave() {
-
+function buildSessionMeta() {
     const location =
         locationSelect?.value === "custom"
             ? customLocation?.value
             : locationSelect?.value || "";
 
+    return {
+        observer: document.getElementById("observer")?.value || "",
+        date: document.getElementById("date")?.value || "",
+        time: document.getElementById("time")?.value || "",
+        location: location,
+        bucketNr: document.getElementById("bucketNr")?.value || "",
+        temperature: document.getElementById("temperature")?.value || "",
+        weather: document.getElementById("weather")?.value || "",
+        notes: document.getElementById("notes")?.value || ""
+    };
+}
+
+function buildCurrentEntry() {
+    return {
+        ...buildSessionMeta(),
+        counts: { ...state },
+        savedAt: new Date().toISOString()
+    };
+}
+
+function autoSave() {
+
     const payload = {
         counts: state,
-        meta: {
-            observer: document.getElementById("observer")?.value || "",
-            date: document.getElementById("date")?.value || "",
-            time: document.getElementById("time")?.value || "",
-            notes: document.getElementById("notes")?.value || "",
-            location: location,
-            bucketNr: document.getElementById("bucketNr")?.value || "",
-            temperature: document.getElementById("temperature")?.value || "",
-            weather: document.getElementById("weather")?.value || ""
-        },
+        meta: buildSessionMeta(),
         updatedAt: Date.now()
     };
 
@@ -270,6 +282,9 @@ deadSpeciesSelect.addEventListener("change", () => {
     const row = createCounterRow("Tot", speciesName);
 
     deadCounterContainer.appendChild(row);
+
+    // persist the choice + counter updates
+    autoSave();
 });
 
 // export (autosaves first)
@@ -295,6 +310,9 @@ document.getElementById("exportBtn").onclick = async () => {
         const m = iso.match(/^(\d{4})-(\d{2})-(\d{2})$/);
         return m ? `${m[3]}.${m[2]}.${m[1]}` : iso;
     };
+
+    const currentEntry = buildCurrentEntry();
+    const exportEntries = [...data, currentEntry];
 
     // ---- header ----
     let header = [
@@ -326,7 +344,7 @@ document.getElementById("exportBtn").onclick = async () => {
     let csv = header.map(escapeCsv).join(separator) + "\n";
 
     // ---- rows ----
-    data.forEach(entry => {
+    exportEntries.forEach(entry => {
 
         let row = [
             formatGermanDate(entry.date),
@@ -440,6 +458,9 @@ if (locationSelect && customLocation) {
 
         autoSave();
     });
+
+    customLocation.addEventListener("input", autoSave);
+    customLocation.addEventListener("change", autoSave);
 }
 
 document.getElementById("nextBucketBtn").onclick = () => {
@@ -465,7 +486,7 @@ document.getElementById("nextBucketBtn").onclick = () => {
     autoSave();
 };
 
-["observer", "date", "time", "notes", "bucketNr"].forEach(id => {
+["observer", "date", "time", "notes", "bucketNr", "temperature", "weather"].forEach(id => {
     const el = document.getElementById(id);
 
     if (sessionMeta.location && locationSelect && customLocation) {
