@@ -187,32 +187,38 @@ function autoSave() {
 }
 
 
-// save
-document.getElementById("saveBtn").addEventListener("click", () => {
-    const location =
-        locationSelect?.value === "custom"
-            ? customLocation?.value
-            : locationSelect?.value || "";
+// save (kept for backwards compatibility, but hidden in UI)
+const saveBtn = document.getElementById("saveBtn");
+if (saveBtn) {
+    saveBtn.style.display = "none";
+    saveBtn.disabled = true;
 
-    const entry = {
-        observer: document.getElementById("observer").value,
-        date: document.getElementById("date").value,
-        time: document.getElementById("time").value,
-        location: location,
-        bucketNr: document.getElementById("bucketNr").value,
-        temperature: document.getElementById("temperature").value,
-        weather: document.getElementById("weather").value,
-        notes: document.getElementById("notes").value,
-        counts: { ...state },
-        savedAt: new Date().toISOString()
-    };
+    saveBtn.addEventListener("click", () => {
+        const location =
+            locationSelect?.value === "custom"
+                ? customLocation?.value
+                : locationSelect?.value || "";
 
-    const existing = JSON.parse(localStorage.getItem("surveys") || "[]");
-    existing.push(entry);
-    localStorage.setItem("surveys", JSON.stringify(existing));
+        const entry = {
+            observer: document.getElementById("observer").value,
+            date: document.getElementById("date").value,
+            time: document.getElementById("time").value,
+            location: location,
+            bucketNr: document.getElementById("bucketNr").value,
+            temperature: document.getElementById("temperature").value,
+            weather: document.getElementById("weather").value,
+            notes: document.getElementById("notes").value,
+            counts: { ...state },
+            savedAt: new Date().toISOString()
+        };
 
-    alert("Gespeichert! (" + existing.length + " Einträge)");
-});
+        const existing = JSON.parse(localStorage.getItem("surveys") || "[]");
+        existing.push(entry);
+        localStorage.setItem("surveys", JSON.stringify(existing));
+
+        alert("Gespeichert! (" + existing.length + " Einträge)");
+    });
+}
 
 function getTypes(speciesName) {
 
@@ -266,8 +272,11 @@ deadSpeciesSelect.addEventListener("change", () => {
     deadCounterContainer.appendChild(row);
 });
 
-// export
+// export (autosaves first)
 document.getElementById("exportBtn").onclick = async () => {
+
+    // ensure latest state is persisted before exporting
+    autoSave();
 
     const data = JSON.parse(localStorage.getItem("surveys") || "[]");
 
