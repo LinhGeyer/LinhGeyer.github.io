@@ -77,7 +77,7 @@ function createSpeciesCard(speciesObj) {
 
     if (speciesObj.name === "Erdkröte") {
 
-        ["weibchen", "maennchen", "paare"].forEach(type => {
+        ["weibchen", "männchen", "paare"].forEach(type => {
             card.appendChild(createCounterRow(speciesObj.name, type));
         });
 
