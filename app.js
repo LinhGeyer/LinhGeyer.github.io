@@ -271,6 +271,22 @@ document.getElementById("exportBtn").onclick = async () => {
 
     const data = JSON.parse(localStorage.getItem("surveys") || "[]");
 
+    const separator = ";";
+
+    const escapeCsv = value => {
+        const str = value == null ? "" : String(value);
+        if (/["\n\r;]/.test(str)) {
+            return `"${str.replace(/"/g, '""')}"`;
+        }
+        return str;
+    };
+
+    const formatGermanDate = iso => {
+        if (!iso) return "";
+        const m = iso.match(/^(\d{4})-(\d{2})-(\d{2})$/);
+        return m ? `${m[3]}.${m[2]}.${m[1]}` : iso;
+    };
+
     // ---- header ----
     let header = [
         "Datum",
@@ -298,13 +314,13 @@ document.getElementById("exportBtn").onclick = async () => {
         header.push(`Tot ${s.name}`);
     });
 
-    let csv = header.join(",") + "\n";
+    let csv = header.map(escapeCsv).join(separator) + "\n";
 
     // ---- rows ----
     data.forEach(entry => {
 
         let row = [
-            entry.date,
+            formatGermanDate(entry.date),
             entry.time,
             entry.observer,
             entry.location || "",
@@ -337,13 +353,16 @@ document.getElementById("exportBtn").onclick = async () => {
             row.push(entry.counts?.[key] ?? 0);
         });
 
-        csv += row.join(",") + "\n";
+        csv += row.map(escapeCsv).join(separator) + "\n";
 
     });
 
+    const now = new Date();
+    const fileDate = `${now.getFullYear()}-${String(now.getMonth() + 1).padStart(2, "0")}-${String(now.getDate()).padStart(2, "0")}`;
+
     const file = new File(
         [csv],
-        "amphibien_zaehlung.csv",
+        `amphibien_zaehlung_${fileDate}.csv`,
         { type: "text/csv" }
     );
 
