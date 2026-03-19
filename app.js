@@ -236,13 +236,6 @@ function getTypes(speciesName) {
     return [];
 }
 
-species.forEach(s => {
-    const option = document.createElement("option");
-    option.value = s.name;
-    option.textContent = s.name;
-    deadSpeciesSelect.appendChild(option);
-});
-
 let currentDeadKey = null;
 
 // populate dropdown
@@ -277,17 +270,6 @@ deadSpeciesSelect.addEventListener("change", () => {
 document.getElementById("exportBtn").onclick = async () => {
 
     const data = JSON.parse(localStorage.getItem("surveys") || "[]");
-
-    const species = [
-        "Erdkröte",
-        "Knoblauchkröte",
-        "Grasfrosch",
-        "Moorfrosch",
-        "Teichfrosch",
-        "Teichmolch",
-        "Kammmolch",
-        "Andere"
-    ];
 
     // ---- header ----
     let header = [
@@ -351,7 +333,8 @@ document.getElementById("exportBtn").onclick = async () => {
         });
 
         species.forEach(s => {
-            header.push(`Tot ${s.name}`);
+            const key = `Tot_${s.name}`;
+            row.push(entry.counts?.[key] ?? 0);
         });
 
         csv += row.join(",") + "\n";
