@@ -40,22 +40,22 @@ if ("serviceWorker" in navigator) {
 }
 
 const species = [
-    { name: "Erdkröte", type: "frog" },
-    { name: "Knoblauchkröte", type: "frog" },
-    { name: "Grasfrosch", type: "frog" },
-    { name: "Moorfrosch", type: "frog" },
-    { name: "Teichfrosch", type: "frog" },
+    { name: "Erdkröte", type: "toad" },
 
-    { name: "Teichmolch", type: "newt" },
-    { name: "Kammmolch", type: "newt" },
+    { name: "Knoblauchkröte", type: "simple" },
+    { name: "Grasfrosch", type: "simple" },
+    { name: "Moorfrosch", type: "simple" },
+    { name: "Grünfrosch", type: "simple" },
 
-    { name: "Andere", type: "frog" }
+    { name: "Teichmolch", type: "simple" },
+    { name: "Kammmolch", type: "simple" }
 ];
 
 const container = document.getElementById("speciesContainer");
 const deadContainer = document.getElementById("deadContainer");
 const locationSelect = document.getElementById("locationSelect");
 const customLocation = document.getElementById("customLocation");
+const deadSpeciesSelect = document.getElementById("deadSpecies");
 
 if (!container) {
     console.error("Cannot find #speciesContainer in the DOM. Species cards will not render.");
@@ -74,15 +74,15 @@ function createSpeciesCard(speciesObj) {
     title.textContent = speciesObj.name;
     card.appendChild(title);
 
-    if (speciesObj.type === "frog") {
+    if (speciesObj.name === "Erdkröte") {
 
-        ["einzeln", "paare"].forEach(type => {
+        ["weibchen", "maennchen", "paare"].forEach(type => {
             card.appendChild(createCounterRow(speciesObj.name, type));
         });
 
-    } else if (speciesObj.type === "newt") {
+    } else {
 
-        card.appendChild(createCounterRow(speciesObj.name, "tiere"));
+        card.appendChild(createCounterRow(speciesObj.name, "anzahl"));
 
     }
 
@@ -235,6 +235,23 @@ function getTypes(speciesName) {
     return [];
 }
 
+species.forEach(s => {
+    const option = document.createElement("option");
+    option.value = s.name;
+    option.textContent = s.name;
+    deadSpeciesSelect.appendChild(option);
+});
+
+const deadCounterContainer = document.getElementById("deadCounter");
+
+const deadKey = "dead_total";
+
+if (state[deadKey] == null) state[deadKey] = 0;
+
+const deadRow = createCounterRow("Tot", "anzahl");
+
+deadCounterContainer.appendChild(deadRow);
+
 // export
 document.getElementById("exportBtn").onclick = async () => {
 
@@ -265,15 +282,17 @@ document.getElementById("exportBtn").onclick = async () => {
 
     species.forEach(s => {
 
-        const types = getTypes(s);
-
-        types.forEach(t => {
-            header.push(`${s} ${t}`);
-        });
+        if (s.name === "Erdkröte") {
+            ["weibchen", "maennchen", "paare"].forEach(t => {
+                header.push(`${s.name} ${t}`);
+            });
+        } else {
+            header.push(`${s.name} Anzahl`);
+        }
 
     });
 
-    // dead counter
+    // dead animals
     header.push("Tote Tiere");
 
     let csv = header.join(",") + "\n";
@@ -293,15 +312,25 @@ document.getElementById("exportBtn").onclick = async () => {
         ];
 
         species.forEach(s => {
-            const types = getTypes(s);
-            types.forEach(t => {
-                const key = `${s}_${t}`;
+
+            if (s.name === "Erdkröte") {
+
+                ["weibchen", "maennchen", "paare"].forEach(t => {
+                    const key = `${s.name}_${t}`;
+                    row.push(entry.counts?.[key] ?? 0);
+                });
+
+            } else {
+
+                const key = `${s.name}_anzahl`;
                 row.push(entry.counts?.[key] ?? 0);
-            });
+
+            }
+
         });
 
-        // dead counter
-        row.push(entry.counts?.["Tot_tiere"] ?? 0);
+        // dead animals
+        row.push(entry.counts?.["Tot_anzahl"] ?? 0);
 
         csv += row.join(",") + "\n";
 
