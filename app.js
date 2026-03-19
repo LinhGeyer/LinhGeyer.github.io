@@ -286,7 +286,7 @@ document.getElementById("exportBtn").onclick = async () => {
     species.forEach(s => {
 
         if (s.name === "Erdkröte") {
-            ["weibchen", "maennchen", "paare"].forEach(t => {
+            ["weibchen", "männchen", "paare"].forEach(t => {
                 header.push(`${s.name} ${t}`);
             });
         } else {
