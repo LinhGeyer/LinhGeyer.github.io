@@ -56,6 +56,7 @@ const deadContainer = document.getElementById("deadContainer");
 const locationSelect = document.getElementById("locationSelect");
 const customLocation = document.getElementById("customLocation");
 const deadSpeciesSelect = document.getElementById("deadSpecies");
+const deadCounterContainer = document.getElementById("deadCounter");
 
 if (!container) {
     console.error("Cannot find #speciesContainer in the DOM. Species cards will not render.");
@@ -242,15 +243,35 @@ species.forEach(s => {
     deadSpeciesSelect.appendChild(option);
 });
 
-const deadCounterContainer = document.getElementById("deadCounter");
+let currentDeadKey = null;
 
-const deadKey = "dead_total";
+// populate dropdown
+species.forEach(s => {
+    const option = document.createElement("option");
+    option.value = s.name;
+    option.textContent = s.name;
+    deadSpeciesSelect.appendChild(option);
+});
 
-if (state[deadKey] == null) state[deadKey] = 0;
+// update counter when species changes
+deadSpeciesSelect.addEventListener("change", () => {
 
-const deadRow = createCounterRow("Tot", "anzahl");
+    deadCounterContainer.innerHTML = "";
 
-deadCounterContainer.appendChild(deadRow);
+    if (!deadSpeciesSelect.value) return;
+
+    const speciesName = deadSpeciesSelect.value;
+
+    currentDeadKey = `Tot_${speciesName}`;
+
+    if (state[currentDeadKey] == null) {
+        state[currentDeadKey] = 0;
+    }
+
+    const row = createCounterRow("Tot", speciesName);
+
+    deadCounterContainer.appendChild(row);
+});
 
 // export
 document.getElementById("exportBtn").onclick = async () => {
@@ -291,9 +312,9 @@ document.getElementById("exportBtn").onclick = async () => {
         }
 
     });
-
-    // dead animals
-    header.push("Tote Tiere");
+    species.forEach(s => {
+        header.push(`Tot ${s.name}`);
+    });
 
     let csv = header.join(",") + "\n";
 
@@ -329,8 +350,9 @@ document.getElementById("exportBtn").onclick = async () => {
 
         });
 
-        // dead animals
-        row.push(entry.counts?.["Tot_anzahl"] ?? 0);
+        species.forEach(s => {
+            header.push(`Tot ${s.name}`);
+        });
 
         csv += row.join(",") + "\n";
 
