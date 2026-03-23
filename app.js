@@ -195,6 +195,7 @@ function autoSave() {
         updatedAt: Date.now()
     };
 
+    saveCurrentBucket();
     saveSession(payload);
 }
 
@@ -230,6 +231,115 @@ if (saveBtn) {
 
         alert("Gespeichert! (" + existing.length + " Einträge)");
     });
+}
+
+function saveCurrentBucket() {
+
+    const location =
+        locationSelect.value === "custom"
+            ? customLocation.value
+            : locationSelect.value;
+
+    const entry = {
+        observer: document.getElementById("observer").value,
+        date: document.getElementById("date").value,
+        time: document.getElementById("time").value,
+        location,
+        bucketNr: document.getElementById("bucketNr").value,
+        temperature: document.getElementById("temperature").value,
+        weather: document.getElementById("weather").value,
+        notes: document.getElementById("notes").value,
+        counts: { ...state },
+        id: Date.now()
+    };
+
+    const entries = JSON.parse(localStorage.getItem("entries") || "[]");
+
+    entries.push(entry);
+
+    localStorage.setItem("entries", JSON.stringify(entries));
+
+}
+
+function resetCountersOnly() {
+
+  Object.keys(state).forEach(key => {
+    state[key] = 0;
+  });
+
+  document.querySelectorAll(".count").forEach(el => {
+    el.textContent = "0";
+  });
+
+}
+
+function renderEntryList() {
+
+  const container = document.getElementById("entryList");
+
+  container.innerHTML = "";
+
+  const entries = JSON.parse(localStorage.getItem("entries") || "[]");
+
+  entries.forEach(entry => {
+
+    const row = document.createElement("div");
+
+    row.className = "entry-row";
+
+    row.innerHTML = `
+      Eimer ${entry.bucketNr} – ${entry.date}
+      <button data-id="${entry.id}">Bearbeiten</button>
+    `;
+
+    row.querySelector("button").onclick = () => {
+      loadEntry(entry.id);
+    };
+
+    container.appendChild(row);
+
+  });
+
+}
+
+function loadEntry(id) {
+
+  const entries = JSON.parse(localStorage.getItem("entries") || "[]");
+
+  const entry = entries.find(e => e.id === id);
+
+  if (!entry) return;
+
+  state = { ...entry.counts };
+
+  document.getElementById("observer").value = entry.observer;
+  document.getElementById("date").value = entry.date;
+  document.getElementById("time").value = entry.time;
+  document.getElementById("bucketNr").value = entry.bucketNr;
+  document.getElementById("temperature").value = entry.temperature;
+  document.getElementById("weather").value = entry.weather;
+  document.getElementById("notes").value = entry.notes;
+
+  updateUIFromState();
+
+}
+
+function updateUIFromState() {
+
+  document.querySelectorAll(".counter-row").forEach(row => {
+
+    const label = row.parentElement.querySelector("h3").textContent;
+
+    const type = row.querySelector("span").textContent;
+
+    const key = `${label}_${type}`;
+
+    if (state[key] != null) {
+      row.querySelector(".count").textContent = state[key];
+    }
+
+  });
+
 }
 
 function getTypes(speciesName) {
@@ -465,6 +575,8 @@ if (locationSelect && customLocation) {
 
 document.getElementById("nextBucketBtn").onclick = () => {
 
+    saveCurrentBucket();
+
     const bucketInput = document.getElementById("bucketNr");
 
     let bucket = parseInt(bucketInput.value || "0", 10);
@@ -472,18 +584,10 @@ document.getElementById("nextBucketBtn").onclick = () => {
     bucket++;
     bucketInput.value = bucket;
 
-    // reset counters
-    Object.keys(state).forEach(key => {
-        state[key] = 0;
-    });
-
-    document.querySelectorAll(".count").forEach(el => {
-        el.textContent = "0";
-    });
-
-    vibrate(40); // stronger feedback for bucket change
+    resetCountersOnly();
 
     autoSave();
+
 };
 
 ["observer", "date", "time", "notes", "bucketNr", "temperature", "weather"].forEach(id => {
@@ -509,3 +613,5 @@ document.getElementById("nextBucketBtn").onclick = () => {
     el.addEventListener("change", autoSave);
     el.addEventListener("input", autoSave);
 });
+
+renderEntryList();
