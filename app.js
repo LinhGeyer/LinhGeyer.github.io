@@ -261,6 +261,18 @@ function saveCurrentBucket() {
 
 }
 
+function formatDateForCsv(iso) {
+  if (!iso) return "";
+  const m = iso.match(/^(\d{4})-(\d{2})-(\d{2})$/);
+  return m ? `${m[3]}/${m[2]}/${m[1]}` : iso;
+}
+
+function formatDateForDisplay(iso) {
+  if (!iso) return "";
+  const m = iso.match(/^(\d{4})-(\d{2})-(\d{2})$/);
+  return m ? `${m[3]}/${m[2]}/${m[1]}` : iso;
+}
+
 function resetCountersOnly() {
 
   Object.keys(state).forEach(key => {
@@ -308,7 +320,7 @@ function renderEntryList() {
     row.className = "entry-row";
 
     row.innerHTML = `
-      Eimer ${entry.bucketNr} – ${entry.date}
+      Eimer ${entry.bucketNr} – ${formatDateForDisplay(entry.date)}
       <button data-id="${entry.id}">Bearbeiten</button>
     `;
 
@@ -436,11 +448,9 @@ document.getElementById("exportBtn").onclick = async () => {
         return str;
     };
 
-    const formatGermanDate = iso => {
-        if (!iso) return "";
-        const m = iso.match(/^(\d{4})-(\d{2})-(\d{2})$/);
-        return m ? `${m[3]}.${m[2]}.${m[1]}` : iso;
-    };
+    // reuse global date formatting helpers
+    // (defined in top-level scope)
+
 
     // ---- header ----
     let header = [
@@ -475,7 +485,7 @@ document.getElementById("exportBtn").onclick = async () => {
     exportEntries.forEach(entry => {
 
         let row = [
-            formatGermanDate(entry.date),
+            formatDateForCsv(entry.date),
             entry.time,
             entry.observer,
             entry.location || "",
