@@ -273,6 +273,25 @@ function resetCountersOnly() {
 
 }
 
+function getLatestBucketEntries(entries) {
+  const latestByBucket = new Map();
+
+  entries.forEach(entry => {
+    if (!entry.bucketNr) return;
+
+    const existing = latestByBucket.get(entry.bucketNr);
+    if (!existing || entry.id > existing.id) {
+      latestByBucket.set(entry.bucketNr, entry);
+    }
+  });
+
+  return [...latestByBucket.values()].sort((a, b) => {
+    const aNr = Number(a.bucketNr) || 0;
+    const bNr = Number(b.bucketNr) || 0;
+    return aNr - bNr;
+  });
+}
+
 function renderEntryList() {
 
   const container = document.getElementById("entryList");
@@ -280,8 +299,9 @@ function renderEntryList() {
   container.innerHTML = "";
 
   const entries = JSON.parse(localStorage.getItem("entries") || "[]");
+  const latestEntries = getLatestBucketEntries(entries);
 
-  entries.forEach(entry => {
+  latestEntries.forEach(entry => {
 
     const row = document.createElement("div");
 
@@ -403,7 +423,8 @@ document.getElementById("exportBtn").onclick = async () => {
     // ensure latest state is persisted before exporting
     autoSave();
 
-    const data = JSON.parse(localStorage.getItem("surveys") || "[]");
+    const entries = JSON.parse(localStorage.getItem("entries") || "[]");
+    const exportEntries = getLatestBucketEntries(entries);
 
     const separator = ";";
 
@@ -420,9 +441,6 @@ document.getElementById("exportBtn").onclick = async () => {
         const m = iso.match(/^(\d{4})-(\d{2})-(\d{2})$/);
         return m ? `${m[3]}.${m[2]}.${m[1]}` : iso;
     };
-
-    const currentEntry = buildCurrentEntry();
-    const exportEntries = [...data, currentEntry];
 
     // ---- header ----
     let header = [
