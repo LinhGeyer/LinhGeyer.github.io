@@ -595,14 +595,14 @@ document.getElementById("nextBucketBtn").onclick = () => {
 
     saveCurrentBucket();
 
-    // autofill date/time when starting next bucket run
+    // autofill date/time for new bucket run
     const now = new Date();
     const dateEl = document.getElementById("date");
     const timeEl = document.getElementById("time");
-    if (dateEl && !dateEl.value) {
+    if (dateEl) {
         dateEl.value = now.toISOString().split("T")[0];
     }
-    if (timeEl && !timeEl.value) {
+    if (timeEl) {
         const hours = String(now.getHours()).padStart(2, "0");
         const minutes = String(now.getMinutes()).padStart(2, "0");
         timeEl.value = `${hours}:${minutes}`;
