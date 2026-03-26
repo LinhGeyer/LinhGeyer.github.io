@@ -611,13 +611,19 @@ document.getElementById("resetBtn").onclick = () => {
     });
 
     // clear form fields
-    ["observer", "date", "time", "notes"].forEach(id => {
+    ["observer", "date", "time", "notes", "bucketNr"].forEach(id => {
         const el = document.getElementById(id);
         if (el) el.value = "";
     });
 
+    // clear all saved bucket entries
+    localStorage.removeItem("entries");
+
     // remove autosaved session
     localStorage.removeItem(SESSION_KEY);
+
+    // re-render the bucket list
+    renderEntryList();
 
 };
 
