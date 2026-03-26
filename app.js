@@ -304,6 +304,43 @@ function getLatestBucketEntries(entries) {
   });
 }
 
+function loadBucketByNumber(bucketNum) {
+  const entries = JSON.parse(localStorage.getItem("entries") || "[]");
+  const latestByBucket = new Map();
+
+  entries.forEach(entry => {
+    if (!entry.bucketNr) return;
+    const existing = latestByBucket.get(entry.bucketNr);
+    if (!existing || entry.id > existing.id) {
+      latestByBucket.set(entry.bucketNr, entry);
+    }
+  });
+
+  const entry = latestByBucket.get(String(bucketNum));
+  
+  if (entry) {
+    loadEntry(entry.id);
+  } else {
+    // no saved entry for this bucket - reset and set date/time
+    resetCountersOnly();
+    updateUIFromState();
+    
+    const now = new Date();
+    const dateEl = document.getElementById("date");
+    const timeEl = document.getElementById("time");
+    if (dateEl) {
+      dateEl.value = now.toISOString().split("T")[0];
+    }
+    if (timeEl) {
+      const hours = String(now.getHours()).padStart(2, "0");
+      const minutes = String(now.getMinutes()).padStart(2, "0");
+      timeEl.value = `${hours}:${minutes}`;
+    }
+  }
+  
+  autoSave();
+}
+
 function renderEntryList() {
 
   const container = document.getElementById("entryList");
@@ -631,7 +668,7 @@ document.getElementById("nextBucketBtn").onclick = () => {
 
 };
 
-["observer", "date", "time", "notes", "bucketNr", "temperature", "weather"].forEach(id => {
+["observer", "date", "time", "notes", "temperature", "weather"].forEach(id => {
     const el = document.getElementById(id);
 
     if (sessionMeta.location && locationSelect && customLocation) {
@@ -654,5 +691,18 @@ document.getElementById("nextBucketBtn").onclick = () => {
     el.addEventListener("change", autoSave);
     el.addEventListener("input", autoSave);
 });
+
+// special handler for manual bucket number changes
+const bucketNrInput = document.getElementById("bucketNr");
+if (bucketNrInput) {
+    bucketNrInput.addEventListener("change", (e) => {
+        const newBucketNum = e.target.value;
+        if (newBucketNum) {
+            saveCurrentBucket();
+            loadBucketByNumber(newBucketNum);
+            renderEntryList();
+        }
+    });
+}
 
 renderEntryList();
