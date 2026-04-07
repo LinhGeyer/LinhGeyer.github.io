@@ -9,12 +9,28 @@ h1 {
   text-align: center;
 }
 
-.session input,
+label {
+  display: block;
+  margin: 12px 0 4px;
+  font-weight: 600;
+}
+
+input,
+select,
 textarea {
   width: 100%;
   padding: 14px;
   margin: 6px 0;
   font-size: 16px;
+  border-radius: 10px;
+  border: 1px solid #ccc;
+  background: white;
+  box-sizing: border-box;
+}
+
+textarea {
+  min-height: 120px;
+  resize: vertical;
 }
 
 .species-card {
@@ -70,20 +86,6 @@ button.minus {
 
 button.minus {
   background: #c62828;
-}
-
-#temperature,
-#weather {
-  width: 100%;
-  padding: 14px;
-  margin: 6px 0;
-  font-size: 16px;
-}
-
-#weather {
-  border-radius: 10px;
-  border: 1px solid #ccc;
-  background: white;
 }
 
 #saveBtn,
