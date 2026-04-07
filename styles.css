@@ -28,6 +28,11 @@ textarea {
   box-sizing: border-box;
 }
 
+input::placeholder,
+textarea::placeholder {
+  color: #999;
+}
+
 textarea {
   min-height: 120px;
   resize: vertical;
