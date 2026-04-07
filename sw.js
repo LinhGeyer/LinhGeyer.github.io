@@ -1,4 +1,4 @@
-const CACHE = "amphi-v3.01";
+const CACHE = "amphi-v3.02";
 
 self.addEventListener("activate", event => {
   event.waitUntil(
