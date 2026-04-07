@@ -568,9 +568,21 @@ document.getElementById("exportBtn").onclick = async () => {
         .replace(/[^a-z0-9_-]/g, "")
         .slice(0, 32) || "observer";
 
+    const locationSelect = document.getElementById("locationSelect");
+    const customLocation = document.getElementById("customLocation");
+    const locationValue = locationSelect?.value === "custom"
+        ? customLocation?.value || ""
+        : locationSelect?.value || "";
+    const safeLocation = locationValue
+        .trim()
+        .toLowerCase()
+        .replace(/\s+/g, "_")
+        .replace(/[^a-z0-9_-]/g, "")
+        .slice(0, 32) || "location";
+
     const file = new File(
         [csv],
-        `amphibien_zaehlung_${fileDate}_${safeObserver}.csv`,
+        `amphibien_zaehlung_${fileDate}_${safeLocation}_${safeObserver}.csv`,
         { type: "text/csv" }
     );
 
