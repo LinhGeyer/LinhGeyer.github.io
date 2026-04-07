@@ -561,10 +561,16 @@ document.getElementById("exportBtn").onclick = async () => {
 
     const now = new Date();
     const fileDate = `${now.getFullYear()}-${String(now.getMonth() + 1).padStart(2, "0")}-${String(now.getDate()).padStart(2, "0")}`;
+    const observerName = (document.getElementById("observer")?.value || "").trim();
+    const safeObserver = observerName
+        .toLowerCase()
+        .replace(/\s+/g, "_")
+        .replace(/[^a-z0-9_-]/g, "")
+        .slice(0, 32) || "observer";
 
     const file = new File(
         [csv],
-        `amphibien_zaehlung_${fileDate}.csv`,
+        `amphibien_zaehlung_${fileDate}_${safeObserver}.csv`,
         { type: "text/csv" }
     );
 
