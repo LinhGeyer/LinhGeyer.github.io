@@ -710,9 +710,27 @@ if (bucketNrInput) {
         }
     });
 
-    bucketNrInput.addEventListener("keypress", (e) => {
+    bucketNrInput.addEventListener("keydown", (e) => {
         if (e.key === "Enter") {
             // autofill date/time for new bucket run, like the +1 button
+            const now = new Date();
+            const dateEl = document.getElementById("date");
+            const timeEl = document.getElementById("time");
+            if (dateEl) {
+                dateEl.value = now.toISOString().split("T")[0];
+            }
+            if (timeEl) {
+                const hours = String(now.getHours()).padStart(2, "0");
+                const minutes = String(now.getMinutes()).padStart(2, "0");
+                timeEl.value = `${hours}:${minutes}`;
+            }
+            autoSave();
+        }
+    });
+
+    // For mobile devices where Enter might not be available, set date/time on blur
+    bucketNrInput.addEventListener("blur", () => {
+        if (bucketNrInput.value && !document.getElementById("date").value) {
             const now = new Date();
             const dateEl = document.getElementById("date");
             const timeEl = document.getElementById("time");
