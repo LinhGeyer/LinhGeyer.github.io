@@ -1,9 +1,7 @@
 import pandas as pd
 import glob
-import os
 
-def aggregate_amphibian_data(input_pattern, output_filename):
-    # Find all files matching the pattern (e.g., 'amphibien_zaehlung_*.csv')
+def aggregate_amphibian_data(input_pattern):
     all_files = glob.glob(input_pattern)
     
     if not all_files:
@@ -11,14 +9,35 @@ def aggregate_amphibian_data(input_pattern, output_filename):
         return
 
     li = []
+    found_locations = set()
 
     for filename in all_files:
+        # Load CSV using semicolon separator 
         df = pd.read_csv(filename, sep=';', index_col=None, header=0)
+        
+        # Check for location names to satisfy the naming requirement
+        if 'Ort' in df.columns:
+            locations = df['Ort'].dropna().unique()
+            for loc in locations:
+                clean_loc = str(loc).strip()
+                if clean_loc:
+                    found_locations.add(clean_loc)
+        
         li.append(df)
 
-    # Combine all individual CSVs into one large dataframe
+    if not found_locations:
+        raise ValueError("CRITICAL ERROR: No location ('Ort') found in any files.")
+
+    location_list = list(found_locations)
+    if len(location_list) > 1:
+        print(f"⚠️  WARNING: Multiple locations found: {location_list}")
+
+    location_name = location_list[0].replace(" ", "_")
+    output_filename = f"Amphibienwanderung_2026_{location_name}.csv"
+
     combined_df = pd.concat(li, axis=0, ignore_index=True)
 
+    # Define columns to sum (Species and Mortality) 
     count_columns = [
         'Erdkröte weibchen', 'Erdkröte männchen', 'Erdkröte paare', 
         'Knoblauchkröte Anzahl', 'Grasfrosch Anzahl', 'Moorfrosch Anzahl', 
@@ -27,19 +46,31 @@ def aggregate_amphibian_data(input_pattern, output_filename):
         'Tot Moorfrosch', 'Tot Grünfrosch', 'Tot Teichmolch', 'Tot Kammmolch'
     ]
 
-    # Convert counts to numeric, just in case there are empty strings or errors
-    for col in count_columns:
-        combined_df[col] = pd.to_numeric(combined_df[col], errors='coerce').fillna(0)
+    # Clean numeric data
+    for col in count_columns + ['Temperatur']:
+        if col in combined_df.columns:
+            combined_df[col] = pd.to_numeric(combined_df[col], errors='coerce').fillna(0)
 
-    # Group by 'Datum' and sum the species counts
-    summary_df = combined_df.groupby('Datum')[count_columns].sum().reset_index()
+    # Perform custom aggregation per Date
+    # - Sum the animals
+    # - Get the time range
+    # - Average the temperature
+    # - Join unique weather strings
+    summary_df = combined_df.groupby('Datum').agg({
+        **{col: 'sum' for col in count_columns},
+        'Uhrzeit': lambda x: f"{x.min()} - {x.max()}",
+        'Temperatur': 'mean',
+        'Wetter': lambda x: ", ".join(set(x.dropna().astype(str)))
+    }).reset_index()
 
-    if 'Temperatur' in combined_df.columns:
-        temp_avg = combined_df.groupby('Datum')['Temperatur'].mean().reset_index()
-        summary_df = pd.merge(summary_df, temp_avg, on='Datum')
+    # Reorder columns so time, temperature and weather come directly after the date
+    summary_df = summary_df[['Datum', 'Uhrzeit', 'Temperatur', 'Wetter'] + count_columns]
 
+    # Save with semicolon separator to match requested style 
     summary_df.to_csv(output_filename, sep=';', index=False, encoding='utf-8-sig')
-    print(f"Success! Summary saved to {output_filename}")
+    print(f"✅ Success! Summary saved as: {output_filename}")
 
-# Usage
-aggregate_amphibian_data('amphibien_zaehlung_*.csv', 'Amphibien_Gesamtuebersicht_2026.csv')
+try:
+    aggregate_amphibian_data('amphibien_zaehlung_*.csv')
+except ValueError as e:
+    print(e)
