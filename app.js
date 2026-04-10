@@ -605,7 +605,7 @@ document.getElementById("exportBtn").onclick = async () => {
         const url = URL.createObjectURL(file);
         const a = document.createElement("a");
         a.href = url;
-        a.download = `amphibien_zaehlung_${fileDate}.csv`;
+        a.download = `amphibien_zaehlung_${fileDate}_${safeLocation}_${safeObserver}.csv`;
         a.click();
 
     }
