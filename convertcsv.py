@@ -1,7 +1,10 @@
-import pandas as pd
+import argparse
+import os
 import glob
+import pandas as pd
 
-def aggregate_amphibian_data(input_pattern):
+def aggregate_amphibian_data(input_dir):
+    input_pattern = os.path.join(input_dir, 'amphibien_zaehlung_*.csv')
     all_files = glob.glob(input_pattern)
     
     if not all_files:
@@ -70,7 +73,22 @@ def aggregate_amphibian_data(input_pattern):
     summary_df.to_csv(output_filename, sep=';', index=False, encoding='utf-8-sig')
     print(f"✅ Success! Summary saved as: {output_filename}")
 
-try:
-    aggregate_amphibian_data('amphibien_zaehlung_*.csv')
-except ValueError as e:
-    print(e)
+
+def main():
+    parser = argparse.ArgumentParser(
+        description='Aggregate amphibian count CSV files into one summary CSV.'
+    )
+    parser.add_argument(
+        '--input-dir',
+        default='.',
+        help='Path to directory containing amphibien_zaehlung_*.csv files'
+    )
+    args = parser.parse_args()
+
+    try:
+        aggregate_amphibian_data(args.input_dir)
+    except ValueError as e:
+        print(e)
+
+if __name__ == '__main__':
+    main()
