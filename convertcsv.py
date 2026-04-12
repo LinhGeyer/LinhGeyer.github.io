@@ -1,24 +1,34 @@
-import argparse
-import os
-import glob
 import pandas as pd
+import glob
+import os
+import argparse
 
-def aggregate_amphibian_data(input_dir):
-    input_pattern = os.path.join(input_dir, 'amphibien_zaehlung_*.csv')
-    all_files = glob.glob(input_pattern)
+def aggregate_amphibian_data(directory_path):
+    # Ensure the path is correctly formatted to look for the CSV files
+    search_pattern = os.path.join(directory_path, 'amphibien_zaehlung_*.csv')
+    all_files = glob.glob(search_pattern)
     
     if not all_files:
-        print("No files found matching the pattern.")
+        print(f"No files found in: {directory_path}")
         return
 
     li = []
     found_locations = set()
 
+    # Species and mortality columns to be summed 
+    count_columns = [
+        'Erdkröte weibchen', 'Erdkröte männchen', 'Erdkröte paare', 
+        'Knoblauchkröte Anzahl', 'Grasfrosch Anzahl', 'Moorfrosch Anzahl', 
+        'Grünfrosch Anzahl', 'Teichmolch Anzahl', 'Kammmolch Anzahl', 
+        'Tot Erdkröte', 'Tot Knoblauchkröte', 'Tot Grasfrosch', 
+        'Tot Moorfrosch', 'Tot Grünfrosch', 'Tot Teichmolch', 'Tot Kammmolch'
+    ]
+
     for filename in all_files:
         # Load CSV using semicolon separator 
         df = pd.read_csv(filename, sep=';', index_col=None, header=0)
         
-        # Check for location names to satisfy the naming requirement
+        # Track unique locations from the 'Ort' column 
         if 'Ort' in df.columns:
             locations = df['Ort'].dropna().unique()
             for loc in locations:
@@ -28,67 +38,77 @@ def aggregate_amphibian_data(input_dir):
         
         li.append(df)
 
+    # Error: Location must exist for the naming convention
     if not found_locations:
-        raise ValueError("CRITICAL ERROR: No location ('Ort') found in any files.")
+        raise ValueError("CRITICAL ERROR: No location ('Ort') found in any files. Aborting.")
 
     location_list = list(found_locations)
     if len(location_list) > 1:
         print(f"⚠️  WARNING: Multiple locations found: {location_list}")
 
+    # Use the first found location for the filename
     location_name = location_list[0].replace(" ", "_")
     output_filename = f"Amphibienwanderung_2026_{location_name}.csv"
 
     combined_df = pd.concat(li, axis=0, ignore_index=True)
 
-    # Define columns to sum (Species and Mortality) 
-    count_columns = [
-        'Erdkröte weibchen', 'Erdkröte männchen', 'Erdkröte paare', 
-        'Knoblauchkröte Anzahl', 'Grasfrosch Anzahl', 'Moorfrosch Anzahl', 
-        'Grünfrosch Anzahl', 'Teichmolch Anzahl', 'Kammmolch Anzahl', 
-        'Tot Erdkröte', 'Tot Knoblauchkröte', 'Tot Grasfrosch', 
-        'Tot Moorfrosch', 'Tot Grünfrosch', 'Tot Teichmolch', 'Tot Kammmolch'
-    ]
+    remarks_column = 'Bemerkungen'
 
-    # Clean numeric data
+    # Clean numeric data for sums and average 
     for col in count_columns + ['Temperatur']:
         if col in combined_df.columns:
             combined_df[col] = pd.to_numeric(combined_df[col], errors='coerce').fillna(0)
 
-    # Perform custom aggregation per Date
-    # - Sum the animals
-    # - Get the time range
-    # - Average the temperature
-    # - Join unique weather strings
-    summary_df = combined_df.groupby('Datum').agg({
+    # Daily Aggregation Logic 
+    agg_dict = {
         **{col: 'sum' for col in count_columns},
         'Uhrzeit': lambda x: f"{x.min()} - {x.max()}",
         'Temperatur': 'mean',
         'Wetter': lambda x: ", ".join(set(x.dropna().astype(str)))
-    }).reset_index()
+    }
+    if remarks_column in combined_df.columns:
+        agg_dict[remarks_column] = lambda x: "; ".join(pd.unique(x.dropna().astype(str)))
 
-    # Reorder columns so time, temperature and weather come directly after the date
-    summary_df = summary_df[['Datum', 'Uhrzeit', 'Temperatur', 'Wetter'] + count_columns]
+    summary_df = combined_df.groupby('Datum').agg(agg_dict).reset_index()
+    if remarks_column not in summary_df.columns:
+        summary_df[remarks_column] = ''
 
-    # Save with semicolon separator to match requested style 
+    # Create the Total Row
+    total_row = pd.Series(dtype='object')
+    total_row['Datum'] = 'GESAMTSUMME'
+    
+    # Sum the counts for the total row
+    for col in count_columns:
+        total_row[col] = summary_df[col].sum()
+    
+    # Calculate overall average temperature, leave Time/Weather empty for total
+    total_row['Temperatur'] = summary_df['Temperatur'].mean()
+    total_row['Uhrzeit'] = ''
+    total_row['Wetter'] = ''
+    total_row[remarks_column] = ''
+
+    # Append the total row to the bottom
+    summary_df = pd.concat([summary_df, total_row.to_frame().T], ignore_index=True)
+
+    # Reorder columns so time, temperature and weather come directly after date
+    ordered_columns = ['Datum', 'Uhrzeit', 'Temperatur', 'Wetter'] + count_columns + [remarks_column]
+    summary_df = summary_df[ordered_columns]
+
+    # Save output with semicolon separator and UTF-8-SIG for Excel compatibility
     summary_df.to_csv(output_filename, sep=';', index=False, encoding='utf-8-sig')
-    print(f"✅ Success! Summary saved as: {output_filename}")
+    
+    print(f"✅ Success! Data aggregated for '{location_list[0]}'.")
+    print(f"File saved as: {os.path.abspath(output_filename)}")
 
-
-def main():
-    parser = argparse.ArgumentParser(
-        description='Aggregate amphibian count CSV files into one summary CSV.'
-    )
-    parser.add_argument(
-        '--input-dir',
-        default='.',
-        help='Path to directory containing amphibien_zaehlung_*.csv files'
-    )
+if __name__ == "__main__":
+    parser = argparse.ArgumentParser(description="Aggregate amphibian migration CSV files from a directory.")
+    parser.add_argument("directory", help="Path to the directory containing the .csv files")
+    
     args = parser.parse_args()
-
+    
     try:
-        aggregate_amphibian_data(args.input_dir)
+        aggregate_amphibian_data(args.directory)
     except ValueError as e:
         print(e)
-
-if __name__ == '__main__':
-    main()
+    except Exception as e:
+        print(f"An unexpected error occurred: {e}")
