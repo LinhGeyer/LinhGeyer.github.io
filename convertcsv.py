@@ -19,9 +19,9 @@ def aggregate_amphibian_data(directory_path):
     count_columns = [
         'Erdkröte weibchen', 'Erdkröte männchen', 'Erdkröte paare', 
         'Knoblauchkröte Anzahl', 'Grasfrosch Anzahl', 'Moorfrosch Anzahl', 
-        'Grünfrosch Anzahl', 'Teichmolch Anzahl', 'Kammmolch Anzahl', 
+        'Grünfrosch Anzahl', 'Teichmolch Anzahl', 'Kammmolch Anzahl', 'Bergmolch Anzahl',
         'Tot Erdkröte', 'Tot Knoblauchkröte', 'Tot Grasfrosch', 
-        'Tot Moorfrosch', 'Tot Grünfrosch', 'Tot Teichmolch', 'Tot Kammmolch'
+        'Tot Moorfrosch', 'Tot Grünfrosch', 'Tot Teichmolch', 'Tot Kammmolch', 'Tot Bergmolch'
     ]
 
     for filename in all_files:

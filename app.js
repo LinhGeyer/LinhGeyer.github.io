@@ -48,7 +48,8 @@ const species = [
     { name: "Grünfrosch", type: "simple" },
 
     { name: "Teichmolch", type: "simple" },
-    { name: "Kammmolch", type: "simple" }
+    { name: "Kammmolch", type: "simple" },
+    { name: "Bergmolch", type: "simple" }
 ];
 
 const container = document.getElementById("speciesContainer");
@@ -424,7 +425,8 @@ function getTypes(speciesName) {
 
     const newtSpecies = [
         "Teichmolch",
-        "Kammmolch"
+        "Kammmolch",
+        "Bergmolch"
     ];
 
     if (frogSpecies.includes(speciesName)) return ["einzeln", "paare"];
